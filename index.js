@@ -7,6 +7,14 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json({ limit: '10mb' }));
 
 
+function getMimeType(base64String) {
+    if (base64String.startsWith('/9j/')) return 'image/jpeg';
+    if (base64String.startsWith('iVBORw0KGgo')) return 'image/png';
+    if (base64String.startsWith('JVBERi0')) return 'application/pdf';
+    return 'application/octet-stream';
+}
+
+
 app.post('/bfhl', (req, res) => {
     try {
         const { data, file_b64 } = req.body;
@@ -27,11 +35,12 @@ app.post('/bfhl', (req, res) => {
         };
 
         if (file_b64) {
-            // In a real-world scenario, you'd implement proper file validation and processing here
+            const mimeType = getMimeType(file_b64);
+            const fileSizeKb = Math.round(file_b64.length * 0.75 / 1024);
             fileInfo = {
                 file_valid: true,
-                file_mime_type: "application/octet-stream", // Example MIME type
-                file_size_kb: Math.round(file_b64.length * 0.75 / 1024) // Rough estimation
+                file_mime_type: mimeType,
+                file_size_kb: fileSizeKb.toString() // Convert to string to match example
             };
         }
 
@@ -53,7 +62,7 @@ app.post('/bfhl', (req, res) => {
     }
 });
 
-
+// GET /bfhl endpoint
 app.get('/bfhl', (req, res) => {
     res.json({ operation_code: 1 });
 });
